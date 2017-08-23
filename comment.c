@@ -5,6 +5,11 @@
  * @date 2017-08-23
  */
 
+/* IDEA:
+ * comment --config "name=Anders Tornblad"
+ * comment --config "dateformat=yyyy-mm-dd"
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
