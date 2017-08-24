@@ -22,11 +22,14 @@ comment_makefile.o: comment_makefile.c comment_makefile.h
 
 $(OBJECTS): comment.h
 
+.PHONY: install
 install: comment
 	cp -p ./comment ~/bin/comment
 
+.PHONY: uninstall
 uninstall:
 	rm -f ~/bin/comment
 
+.PHONY: clean
 clean:
 	rm -f *.o comment
