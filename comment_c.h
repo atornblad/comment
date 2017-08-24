@@ -3,7 +3,7 @@
 
 #include "comment.h"
 
-void commentC(COMMENT *data);
+int commentC(COMMENT *data);
 
 #endif
 

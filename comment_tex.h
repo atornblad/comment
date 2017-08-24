@@ -3,7 +3,7 @@
 
 #include "comment.h"
 
-void commentTex(COMMENT *data);
+int commentTex(COMMENT *data);
 
 #endif
 

@@ -3,7 +3,7 @@
 
 #include "comment.h"
 
-void commentMakefile(COMMENT *data);
+int commentMakefile(COMMENT *data);
 
 #endif
 

@@ -8,7 +8,8 @@ struct comment_data {
 	char localname[256];
 	char extension[32];
 	struct stat stat;
-	char datetext[16];
+	char datetext[256];
+	char author[256];
 };
 
 typedef struct comment_data COMMENT;

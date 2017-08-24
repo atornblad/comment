@@ -3,7 +3,7 @@
 
 #include "comment.h"
 
-void commentSh(COMMENT *data);
+int commentSh(COMMENT *data);
 
 #endif
 

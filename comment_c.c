@@ -5,8 +5,8 @@
 #include <utime.h>
 #include "comment_c.h"
 
-static void addNewCComment(COMMENT *data);
-static void modifyCComment(COMMENT *data, int indexOfDate, int indexOfDateEnd);
+static int addNewCComment(COMMENT *data);
+static int modifyCComment(COMMENT *data, int indexOfDate, int indexOfDateEnd);
 
 /* STATES
  *  0 : Looking for /                                   -> 1 / 0
@@ -29,11 +29,12 @@ static void modifyCComment(COMMENT *data, int indexOfDate, int indexOfDateEnd);
  * If (11) hasn't happened after a full scan, there is no date comment in the file
  */
 
-void commentC(COMMENT *data) {
-	fprintf(stderr, "commentC(...)\n");
-
+int commentC(COMMENT *data) {
 	FILE *f = fopen(data->filename, "r");
-	if (!f) return;
+	if (!f) {
+		fprintf(stderr, "Could not open file '%s'\n", data->filename);
+		return 1;
+	}
 
 	int state = 0;
 	int index = 0;
@@ -97,23 +98,24 @@ void commentC(COMMENT *data) {
 	fclose(f);
 
 	if (indexOfDateEnd == -1) {
-		addNewCComment(data);
+		return addNewCComment(data);
 	}
 	else {
 		if (indexOfDate == -1) indexOfDate = indexOfDateEnd;
-		modifyCComment(data, indexOfDate, indexOfDateEnd);
+		return modifyCComment(data, indexOfDate, indexOfDateEnd);
 	}
 }
 
-static void addNewCComment(COMMENT *data) {
+static int addNewCComment(COMMENT *data) {
 	/* Create a new temp file, containing a new doxygen comment, and the full source file */
 	FILE *temp = tmpfile();
 	fprintf(temp, "/" "**\n");
 	fprintf(temp, " * @file %s\n", data->localname);
-	fprintf(temp, " * @author %s\n", "Anders Tornblad"); /* TODO: Fetch from somewhere */
+	fprintf(temp, " * @author %s\n", data->author);
 	fprintf(temp, " * @date %s\n", data->datetext);
 	fprintf(temp, " */\n");
 	FILE *input = fopen(data->filename, "r");
+	/* TODO: check input */
 	int ch;
 	while ((ch = fgetc(input)) != EOF) {
 		fputc(ch, temp);
@@ -124,6 +126,7 @@ static void addNewCComment(COMMENT *data) {
 	/* Copy the temp file to the original filename */
 	fseek(temp, 0, SEEK_SET);
 	FILE *output = fopen(data->filename, "w");
+	/* TODO: check output */
 	while ((ch = fgetc(temp)) != EOF) {
 		fputc(ch, output);
 	}
@@ -136,12 +139,16 @@ static void addNewCComment(COMMENT *data) {
 	utb.actime = data->stat.st_atime;
 	utb.modtime = data->stat.st_mtime;
 	utime(data->filename, &utb);
+
+	return 0;
 }
 
-static void modifyCComment(COMMENT *data, int indexOfDate, int indexOfDateEnd) {
+static int modifyCComment(COMMENT *data, int indexOfDate, int indexOfDateEnd) {
 	/* Create a new temp file */
 	FILE *temp = tmpfile();
+	/* TODO: check temp */
 	FILE *input = fopen(data->filename, "r");
+	/* TODO: check input */
 	int ch;
 	int index = 0;
 	/* Copy everything until existing date */
@@ -171,6 +178,7 @@ static void modifyCComment(COMMENT *data, int indexOfDate, int indexOfDateEnd) {
 	/* Copy the temp file to the original filename */
 	fseek(temp, 0, SEEK_SET);
 	FILE *output = fopen(data->filename, "w");
+	/* TODO: check output */
 	while ((ch = fgetc(temp)) != EOF) {
 		fputc(ch, output);
 	}
@@ -183,4 +191,6 @@ static void modifyCComment(COMMENT *data, int indexOfDate, int indexOfDateEnd) {
 	utb.actime = data->stat.st_atime;
 	utb.modtime = data->stat.st_mtime;
 	utime(data->filename, &utb);
+
+	return 0;
 }

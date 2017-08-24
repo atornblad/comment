@@ -4,7 +4,9 @@
 #include <sys/stat.h>
 #include "comment_tex.h"
 
-void commentTex(COMMENT *data) {
+int commentTex(COMMENT *data) {
+	fprintf(stderr, "NOT IMPLEMENTED: .tex files\n");
+	return 3;
 }
 
 

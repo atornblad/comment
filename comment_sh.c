@@ -4,7 +4,9 @@
 #include <sys/stat.h>
 #include "comment_sh.h"
 
-void commentSh(COMMENT *data) {
+int commentSh(COMMENT *data) {
+	fprintf(stderr, "NOT IMPLEMENTED: shell script files\n");
+	return 3;
 }
 
 

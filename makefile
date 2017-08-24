@@ -16,3 +16,11 @@ comment_tex.o: comment_tex.c
 comment_makefile.o: comment_makefile.c
 	gcc -Wall -std=c99 -c comment_makefile.c
 
+install: comment
+	cp -p ./comment ~/bin/comment
+
+uninstall:
+	rm -f ~/bin/comment
+
+clean:
+	rm -f *.o comment
