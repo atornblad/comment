@@ -2,7 +2,7 @@
  * @file comment.c
  * @brief main program for comment tool
  * @author Anders Tornblad
- * @date 2017-08-23
+ * @date 2017-08-24
  */
 
 /* IDEA:

@@ -1,3 +1,8 @@
+/**
+ * @file comment_tex.c
+ * @author Anders Tornblad
+ * @date 2017-08-24
+ */
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>

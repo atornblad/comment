@@ -1,3 +1,8 @@
+/**
+ * @file comment.h
+ * @author Anders Tornblad
+ * @date 2017-08-24
+ */
 #ifndef COMMENT_H
 #define COMMENT_H
 
