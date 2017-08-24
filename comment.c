@@ -14,11 +14,13 @@
  */
 
 #define _XOPEN_SOURCE
+#define _XOPEN_SOURCE_EXTENDED
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <errno.h>
 #include "comment.h"
 #include "comment_c.h"
 #include "comment_makefile.h"
@@ -90,9 +92,13 @@ static void readConfigFile(const char *filename, int global) {
 static char GLOBAL_CONFIG_FILENAME[1024];
 static const char * const LOCAL_CONFIG_FILENAME = "./.comment-data";
 
-static void readConfig(int globalOnly) {
+static void prepareConfig() {
 	strcpy(GLOBAL_CONFIG_FILENAME, getenv("HOME"));
 	strcat(GLOBAL_CONFIG_FILENAME, "/.config/comment-data");
+}
+
+static void readConfig(int globalOnly) {
+	prepareConfig();
 
 	cuserid(author);
 	authorIsGlobal = 0;
@@ -110,16 +116,79 @@ static void readConfig(int globalOnly) {
 }
 
 static int setConfigFileValue(const char *filename, const char *setting, const char *value) {
-	fprintf(stderr, "NOT IMPLEMENTED: setConfigFileValue\n");
+	char tempname[40];
+	strcpy(tempname, "/tmp/comment-data-XXXXXX");
+	int tempfd = mkstemp(tempname);
+	if (tempfd < 1) {
+		fprintf(stderr, "Could not create temporary file: %s\n", strerror(errno));
+		return 2;
+	}
+
+	unlink(tempname);
+	FILE *temp = fdopen(tempfd, "w+");
+	if (!temp) {
+		fprintf(stderr, "Could not create temporary file\n");
+		return 2;
+	}
+
+	FILE *input = fopen(filename, "r");
+	if (input) {
+		/* The file already exists - read key/value pairs and only copy those that do NOT match setting */
+		char key[256];
+		char value[256];
+		while (fgets(key, 256, input) != NULL) {
+			if (key[strlen(key) - 1] == '\n') key[strlen(key) - 1] = '\0';
+			if (fgets(value, 256, input) != NULL) {
+				if (value[strlen(value) - 1] == '\n') value[strlen(value) - 1] = '\0';
+				if (strcmp(key, setting) != 0) {
+					if (strlen(key) >= 1 && strlen(setting) >= 1) {
+						fprintf(temp, "%s\n%s\n", key, value);
+					}
+				}
+			}
+			else {
+				break;
+			}
+		}
+		fclose(input);
+	}
+
+	if (value != NULL) {
+		fprintf(temp, "%s\n", setting);
+		fprintf(temp, "%s\n", value);
+	}
+	fflush(temp);
+
+	/* rewind temp file and start copying it */
+	fseek(temp, 0, SEEK_SET);
+
+	FILE *output = fopen(filename, "w");
+	if (!output) {
+		fprintf(stderr, "Could not open config file '%s' for writing: %s\n", filename, strerror(errno));
+		fclose(temp);
+		return 2;
+	}
+
+	char line[256];
+	while (fgets(line, 256, temp)) {
+		fputs(line, output);
+	}
+	fflush(output);
+	fclose(output);
+	fclose(temp);
+	
 	return 1;
 }
 
 static int setConfigValue(int global, const char *setting, const char *value) {
+	prepareConfig();
+
 	return setConfigFileValue((global ? ((const char *)GLOBAL_CONFIG_FILENAME) : LOCAL_CONFIG_FILENAME), setting, value);
 }
 
 static int showConfig(int global) {
 	readConfig(global);
+
 	fprintf(stdout, "author: '%s' (%s)\n", author,
 		(authorIsDefault ? "default" : (authorIsGlobal ? "global" : "local")));
 	fprintf(stdout, "dateformat: '%s' (%s)\n", dateformat,
