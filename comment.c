@@ -46,12 +46,13 @@ int main(int argc, char *argv[]) {
 	else {
 		readConfig(0);
 
+		int retcode = 0;
 		for (int i = 1; i < argc; ++i) {
 			int result = comment(argv[i]);
-			if (result) return result;
+			if (result > retcode) retcode = result;
 		}
 
-		return 0;
+		return retcode;
 	}
 }
 
@@ -217,20 +218,21 @@ static int setConfig(int argc, const char **args) {
 }
 
 static int analyzeAndComment(COMMENT *data) {
-	if (strcmp("makefile", data->localname) == 0) {
+	if (strcmp("makefile", data->localname) == 0 ||
+				strcmp("Makefile", data->localname) == 0 ||
+				strcmp(".mk", data->extension) == 0) {
 		return commentMakefile(data);
 	}
-	else if (strcmp("Makefile", data->localname) == 0) {
-		return commentMakefile(data);
-	}
-	else if (strcmp(".c", data->extension) == 0) {
+	else if (strcmp(".c", data->extension) == 0 ||
+				strcmp(".h", data->extension) == 0 ||
+				strcmp(".cc", data->extension) == 0 ||
+				strcmp(".cpp", data->extension) == 0 ||
+				strcmp(".c++", data->extension) == 0 ||
+				strcmp(".cxx", data->extension) == 0 ||
+				strcmp(".hh", data->extension) == 0 ||
+				strcmp(".hpp", data->extension) == 0 ||
+				strcmp(".h++", data->extension) == 0) {
 		return commentC(data);
-	}
-	else if(strcmp(".h", data->extension) == 0) {
-		return commentC(data);
-	}
-	else if(strcmp(".mk", data->extension) == 0) {
-		return commentMakefile(data);
 	}
 	else if(strcmp(".tex", data->extension) == 0) {
 		return commentTex(data);
@@ -239,8 +241,28 @@ static int analyzeAndComment(COMMENT *data) {
 		return commentSh(data);
 	}
 	else {
-		fprintf(stderr, "Cannot add comment to: '%s'\nDon't know what type of file it is.\n", data->filename);
-		return 1;
+		char firstline[1024];
+		FILE *f = fopen(data->filename, "r");
+		if (f) {
+			if (fgets(firstline, 1024, f) == NULL) {
+				firstline[0] = '\0';
+			}
+			else {
+				if (firstline[strlen(firstline) - 1] == '\n') firstline[strlen(firstline) - 1] = '\0';
+			}
+			fclose(f);
+		}
+		else {
+			firstline[0] = '\0';
+		}
+
+		if (strncmp("#!", firstline, 2) == 0) {
+			return commentSh(data);
+		}
+		else {
+			fprintf(stderr, "Cannot add comment to: '%s'\nDon't know what type of file it is.\n", data->filename);
+			return 1;
+		}
 	}
 }
 
