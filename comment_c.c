@@ -3,8 +3,14 @@
  * @author Anders Tornblad
  * @date 2017-08-24
  */
+#define _XOPEN_SOURCE
+#define _XOPEN_SOURCE_EXTENDED
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <utime.h>
@@ -113,7 +119,20 @@ int commentC(COMMENT *data) {
 
 static int addNewCComment(COMMENT *data) {
 	/* Create a new temp file, containing a new doxygen comment, and the full source file */
-	FILE *temp = tmpfile();
+	char tempname[512];
+	sprintf(tempname, "/tmp/comment-%s-XXXXXX", data->localname);
+	int tempfd = mkstemp(tempname);
+	if (tempfd < 1) {
+		fprintf(stderr, "Could not create temporary file: %s\n", strerror(errno));
+		return 2;
+	}
+
+	unlink(tempname);
+	FILE *temp = fdopen(tempfd, "w+");
+	if (!temp) {
+		fprintf(stderr, "Could not create temporary file\n");
+		return 2;
+	}
 	fprintf(temp, "/" "**\n");
 	fprintf(temp, " * @file %s\n", data->localname);
 	fprintf(temp, " * @author %s\n", data->author);
@@ -150,8 +169,21 @@ static int addNewCComment(COMMENT *data) {
 
 static int modifyCComment(COMMENT *data, int indexOfDate, int indexOfDateEnd) {
 	/* Create a new temp file */
-	FILE *temp = tmpfile();
-	/* TODO: check temp */
+	char tempname[512];
+	sprintf(tempname, "/tmp/comment-%s-XXXXXX", data->localname);
+	int tempfd = mkstemp(tempname);
+	if (tempfd < 1) {
+		fprintf(stderr, "Could not create temporary file: %s\n", strerror(errno));
+		return 2;
+	}
+
+	unlink(tempname);
+	FILE *temp = fdopen(tempfd, "w+");
+	if (!temp) {
+		fprintf(stderr, "Could not create temporary file\n");
+		return 2;
+	}
+
 	FILE *input = fopen(data->filename, "r");
 	/* TODO: check input */
 	int ch;
