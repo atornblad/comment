@@ -1,3 +1,7 @@
+# Makefile
+# Author: Anders Tornblad
+# Date: 2017-08-24
+
 SOURCES := $(wildcard *.c)
 HEADERS := $(wildcard *.h)
 OBJECTS := $(patsubst %.c,%.o,$(wildcard *.c))
