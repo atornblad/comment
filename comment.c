@@ -18,6 +18,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include "comment.h"
 #include "comment_c.h"
 #include "comment_makefile.h"
@@ -28,9 +29,9 @@ static int comment(const char *filename);
 static int setConfig(int argc, const char **args);
 static void readConfig(int globalOnly);
 
-static char name[256];
-static int nameIsGlobal;
-static int nameIsDefault;
+static char author[256];
+static int authorIsGlobal;
+static int authorIsDefault;
 
 static char dateformat[256];
 static int dateformatIsGlobal;
@@ -67,12 +68,12 @@ static void readConfigFile(const char *filename, int global) {
 			len = strlen(value);
 			if (value[len - 1] == '\n') value[len - 1] = '\0';
 
-			if (strcmp("name", key)) {
-				strcpy(name, value);
-				nameIsGlobal = global;
-				nameIsDefault = 0;
+			if (strcmp("author", key) == 0) {
+				strcpy(author, value);
+				authorIsGlobal = global;
+				authorIsDefault = 0;
 			}
-			else if (strcmp("dateformat", key)) {
+			else if (strcmp("dateformat", key) == 0) {
 				strcpy(dateformat, value);
 				dateformatIsGlobal = global;
 				dateformatIsDefault = 0;
@@ -86,19 +87,22 @@ static void readConfigFile(const char *filename, int global) {
 	fclose(f);
 }
 
-static const char * const GLOBAL_CONFIG_FILENAME = "~/.config/comment-data";
+static char GLOBAL_CONFIG_FILENAME[1024];
 static const char * const LOCAL_CONFIG_FILENAME = "./.comment-data";
 
 static void readConfig(int globalOnly) {
-	cuserid(name);
-	nameIsGlobal = 0;
-	nameIsDefault = 1;
+	strcpy(GLOBAL_CONFIG_FILENAME, getenv("HOME"));
+	strcat(GLOBAL_CONFIG_FILENAME, "/.config/comment-data");
+
+	cuserid(author);
+	authorIsGlobal = 0;
+	authorIsDefault = 1;
 
 	strcpy(dateformat, "%F");
 	dateformatIsGlobal = 0;
 	dateformatIsDefault = 1;
 	
-	readConfigFile(GLOBAL_CONFIG_FILENAME, 1);
+	readConfigFile((const char *)GLOBAL_CONFIG_FILENAME, 1);
 
 	if (!globalOnly) {
 		readConfigFile(LOCAL_CONFIG_FILENAME, 0);
@@ -111,13 +115,13 @@ static int setConfigFileValue(const char *filename, const char *setting, const c
 }
 
 static int setConfigValue(int global, const char *setting, const char *value) {
-	return setConfigFileValue((global ? GLOBAL_CONFIG_FILENAME : LOCAL_CONFIG_FILENAME), setting, value);
+	return setConfigFileValue((global ? ((const char *)GLOBAL_CONFIG_FILENAME) : LOCAL_CONFIG_FILENAME), setting, value);
 }
 
 static int showConfig(int global) {
 	readConfig(global);
-	fprintf(stdout, "name: '%s' (%s)\n", name,
-		(nameIsDefault ? "default" : (nameIsGlobal ? "global" : "local")));
+	fprintf(stdout, "author: '%s' (%s)\n", author,
+		(authorIsDefault ? "default" : (authorIsGlobal ? "global" : "local")));
 	fprintf(stdout, "dateformat: '%s' (%s)\n", dateformat,
 		(dateformatIsDefault ? "default" : (dateformatIsGlobal ? "global" : "local")));
 	return 0;
@@ -187,9 +191,9 @@ static int comment(const char *filename) {
 	COMMENT data;
 	strcpy(data.filename, filename);
 	strcpy(data.localname, local);
-	strcpy(data.author, name);
+	strcpy(data.author, author);
 	stat(filename, &data.stat);
-	if (strftime(data.datetext, 256, dateformat, gmtime(&data.stat.st_mtime)) == 0) {
+	if (strftime(data.datetext, 256, dateformat, localtime(&data.stat.st_mtime)) == 0) {
 		fprintf(stderr, "Could not format date correctly! Please run comment --config dateformat \"FORMAT\"\n");
 		return 2;
 	}
