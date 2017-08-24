@@ -1,7 +1,11 @@
-comment: comment.o comment_c.o comment_sh.o comment_tex.o comment_makefile.o
-	gcc -o comment comment.o comment_c.o comment_sh.o comment_tex.o comment_makefile.o
+SOURCES := $(wildcard *.c)
+HEADERS := $(wildcard *.h)
+OBJECTS := $(patsubst %.c,%.o,$(wildcard *.c))
 
-comment.o: comment.c $(wildcard *.h)
+comment: $(OBJECTS)
+	gcc -o comment $(OBJECTS)
+
+comment.o: comment.c $(HEADERS)
 	gcc -Wall -std=c99 -c comment.c
 
 comment_c.o: comment_c.c comment_c.h
@@ -16,7 +20,7 @@ comment_tex.o: comment_tex.c comment_tex.h
 comment_makefile.o: comment_makefile.c comment_makefile.h
 	gcc -Wall -std=c99 -c comment_makefile.c
 
-$(patsubst %.c,%.o,$(wildcard *.c)): comment.h
+$(OBJECTS): comment.h
 
 install: comment
 	cp -p ./comment ~/bin/comment
