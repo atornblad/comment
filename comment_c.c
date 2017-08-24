@@ -11,13 +11,22 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <utime.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <utime.h>
 #include "comment_c.h"
 
 static int addNewCComment(COMMENT *data);
 static int modifyCComment(COMMENT *data, int indexOfDate, int indexOfDateEnd);
+
+/* BETTER SOLUTION:
+ * This could be done much simpler by checking line by line:
+ * First look for (/)! (*)! (*)!
+ * Then look for (backspace)? (*)? (backspace)? @date (backspace)! (whatever)
+ * Then look for (whatever) (*)! (/)! (backspace)?
+ *
+ * Keep track of line index instead of byte index
+ */
 
 /* STATES
  *  0 : Looking for /                                   -> 1 / 0
