@@ -195,7 +195,8 @@ static int addNewMakefileComment(COMMENT *data) {
 	utb.modtime = data->stat.st_mtime;
 	utime(data->filename, &utb);
 
-	return 0;}
+	return 0;
+}
 
 
 
