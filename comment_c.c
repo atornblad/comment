@@ -148,7 +148,15 @@ static int addNewCComment(COMMENT *data) {
 	fprintf(temp, " * @date %s\n", data->datetext);
 	fprintf(temp, " */\n");
 	FILE *input = fopen(data->filename, "r");
-	/* TODO: check input */
+	if (!input) {
+		fprintf(stderr, "When copying existing parts of original file, adding a new C comment,\n"
+				"the original file could not be opened: %s\n", strerror(errno));
+		fflush(temp);
+		fclose(temp);
+		close(tempfd);
+		return 2;
+	}
+
 	int ch;
 	while ((ch = fgetc(input)) != EOF) {
 		fputc(ch, temp);
@@ -159,13 +167,21 @@ static int addNewCComment(COMMENT *data) {
 	/* Copy the temp file to the original filename */
 	fseek(temp, 0, SEEK_SET);
 	FILE *output = fopen(data->filename, "w");
-	/* TODO: check output */
+	if (!output) {
+		fprintf(stderr, "When copying temporary file over the original file, adding a new\n"
+				"C comment, the original file could not be overwritten: %s\n", strerror(errno));
+		fclose(temp);
+		close(tempfd);
+		return 2;
+	}
+
 	while ((ch = fgetc(temp)) != EOF) {
 		fputc(ch, output);
 	}
 	fflush(output);
 	fclose(output);
 	fclose(temp);
+	close(tempfd);
 
 	/* Touch the file! */
 	struct utimbuf utb;
@@ -194,7 +210,15 @@ static int modifyCComment(COMMENT *data, int indexOfDate, int indexOfDateEnd) {
 	}
 
 	FILE *input = fopen(data->filename, "r");
-	/* TODO: check input */
+	if (!input) {
+		fprintf(stderr, "When copying existing parts of original file, modifying a C comment,\n"
+				"the original file could not be opened: %s\n", strerror(errno));
+		fflush(temp);
+		fclose(temp);
+		close(tempfd);
+		return 2;
+	}
+
 	int ch;
 	int index = 0;
 	/* Copy everything until existing date */
@@ -224,7 +248,14 @@ static int modifyCComment(COMMENT *data, int indexOfDate, int indexOfDateEnd) {
 	/* Copy the temp file to the original filename */
 	fseek(temp, 0, SEEK_SET);
 	FILE *output = fopen(data->filename, "w");
-	/* TODO: check output */
+	if (!output) {
+		fprintf(stderr, "When copying temporary file over the original file, modifying a\n"
+				"C comment, the original file could not be overwritten: %s\n", strerror(errno));
+		fclose(temp);
+		close(tempfd);
+		return 2;
+	}
+
 	while ((ch = fgetc(temp)) != EOF) {
 		fputc(ch, output);
 	}

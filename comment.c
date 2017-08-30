@@ -66,7 +66,7 @@ static void readConfigFile(const char *filename, int global) {
 	while (fgets(key, 256, f) != NULL) {
 		int len = strlen(key);
 		if (key[len - 1] == '\n') key[len - 1] = '\0';
-		
+
 		if (fgets(value, 256, f) != NULL) {
 			len = strlen(value);
 			if (value[len - 1] == '\n') value[len - 1] = '\0';
@@ -108,7 +108,7 @@ static void readConfig(int globalOnly) {
 	strcpy(dateformat, "%F");
 	dateformatIsGlobal = 0;
 	dateformatIsDefault = 1;
-	
+
 	readConfigFile((const char *)GLOBAL_CONFIG_FILENAME, 1);
 
 	if (!globalOnly) {
