@@ -98,7 +98,15 @@ static int modifyTexComment(COMMENT *data, int dateLineIndex, int extraSpace, in
 	}
 
 	FILE *input = fopen(data->filename, "r");
-	/* TODO: check input */
+	if (!input) {
+		fprintf(stderr, "When copying existing parts of original file, adding a new tex comment,\n"
+				"the original file could not be opened: %s\n", strerror(errno));
+		fflush(temp);
+		fclose(temp);
+		close(tempfd);
+		return 2;
+	}
+
 	int ch;
 	int lineIndex = 0;
 	char buffer[1024];
@@ -130,7 +138,14 @@ static int modifyTexComment(COMMENT *data, int dateLineIndex, int extraSpace, in
 	/* Copy the temp file to the original filename */
 	fseek(temp, 0, SEEK_SET);
 	FILE *output = fopen(data->filename, "w");
-	/* TODO: check output */
+	if (!output) {
+		fprintf(stderr, "When copying temporary file over the original file, adding a new\n"
+				"tex comment, the original file could not be overwritten: %s\n", strerror(errno));
+		fclose(temp);
+		close(tempfd);
+		return 2;
+	}
+
 	while ((ch = fgetc(temp)) != EOF) {
 		fputc(ch, output);
 	}
@@ -170,7 +185,15 @@ static int addNewTexComment(COMMENT *data) {
 	fprintf(temp, "\n");
 
 	FILE *input = fopen(data->filename, "r");
-	/* TODO: check input */
+	if (!input) {
+		fprintf(stderr, "When copying existing parts of original file, modifying a tex comment,\n"
+				"the original file could not be opened: %s\n", strerror(errno));
+		fflush(temp);
+		fclose(temp);
+		close(tempfd);
+		return 2;
+	}
+
 	int ch;
 	while ((ch = fgetc(input)) != EOF) {
 		fputc(ch, temp);
@@ -181,7 +204,14 @@ static int addNewTexComment(COMMENT *data) {
 	/* Copy the temp file to the original filename */
 	fseek(temp, 0, SEEK_SET);
 	FILE *output = fopen(data->filename, "w");
-	/* TODO: check output */
+	if (!output) {
+		fprintf(stderr, "When copying temporary file over the original file, modifying a\n"
+				"tex comment, the original file could not be overwritten: %s\n", strerror(errno));
+		fclose(temp);
+		close(tempfd);
+		return 2;
+	}
+
 	while ((ch = fgetc(temp)) != EOF) {
 		fputc(ch, output);
 	}
