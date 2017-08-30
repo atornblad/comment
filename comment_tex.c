@@ -1,7 +1,7 @@
 /**
  * @file comment_tex.c
  * @author Anders Tornblad
- * @date 2017-08-24
+ * @date 2017-08-30
  */
 #define _XOPEN_SOURCE
 #define _XOPEN_SOURCE_EXTENDED
